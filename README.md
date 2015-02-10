@@ -1,6 +1,6 @@
 # Spotify Playlist Generator
 
-Input a list of bands/artists, and it will load up a playlist with tracks from those artists.
+Input a list of bands/artists, and it will create Spotify playlist on your account with tracks from those artists.
 
 ## Installation
 
