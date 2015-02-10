@@ -3,7 +3,7 @@
     <h1>Spotify Playlist Generator</h1>
   </div>
   <accordion close-others="oneAtATime">
-    <accordion-group heading="Search for Artists" is-open="status[0]" is-disabled="status.isFirstDisabled">
+    <accordion-group heading="Search for Artists" id="accordion-search" is-open="status[0]" is-disabled="status.isFirstDisabled">
       <div class="form-group">
         <label for="search">Enter Artist Names</label>
         <textarea id="search" placeholder="{{playlistplaceholder}}" cols="30" rows="5" ng-model="searchartist" class="form-control"></textarea>
@@ -15,7 +15,7 @@
       </div>
       <button type="submit" class="btn btn btn-primary" ng-click="searchArtist(searchartist)" ng-disabled="searchartist.trim().length == 0">Search Artists</button>
     </accordion-group>
-    <accordion-group heading="Add Artists to Playlist" is-open="status[1]" >
+    <accordion-group heading="Add Artists to Playlist" id="accordion-results" is-open="status[1]" >
       <form class="panel-body">
         <div class="form-group">
           <label for="name">Playlist Name</label>

@@ -14,7 +14,7 @@ angular.module('spotifyPlaylistGenerator')
     $scope.tracks = [];
 
     $scope.status = [true, false, false];
-    $scope.oneAtATime = true;
+    $scope.oneAtATime = false;
 
     var MAX_DELAY = 150;
     var MIN_DELAY = 850;
@@ -51,6 +51,18 @@ angular.module('spotifyPlaylistGenerator')
 
       $timeout(function() {
         defer.resolve(promise.apply(scope, args));
+      }, delay);
+
+      return defer.promise;
+    };
+
+    function sleepPromise (delay, payload) {
+      console.log("sleepPromise", delay, payload);
+      var defer = $q.defer();
+
+      $timeout(function() {
+        console.log("timeout", delay, payload);
+        defer.resolve(payload);
       }, delay);
 
       return defer.promise;
@@ -98,7 +110,7 @@ angular.module('spotifyPlaylistGenerator')
     function getArtistTracks () {
       console.log($scope.queries);
 
-      $scope.status = [false, false, true];
+      $scope.status = [true, true, true];
 
       var defer = $q.defer();
       var calls = [];
@@ -167,7 +179,9 @@ angular.module('spotifyPlaylistGenerator')
       }
       var terms = $scope.searchartist.trim().split('\n');
       $scope.dynamic = 0;
-      $scope.status = [false, true, false];
+      $scope.status = [true, true, false];
+
+
 
       var counter = 0;
       function request (artist) {
@@ -176,7 +190,7 @@ angular.module('spotifyPlaylistGenerator')
           function(data) {
             console.log("Spotify.search", data);
             counter++;
-            defer.notify(data);
+            defer.notify(counter);
             $scope.dynamic = Math.round(counter / terms.length * $scope.max);
             var selected = data.artists.items.length > 0 ? data.artists.items[0].id : null;
             defer.resolve({q: artist, selected: selected, results: data});
@@ -189,13 +203,28 @@ angular.module('spotifyPlaylistGenerator')
 
       var calls = [];
       for (var i=0; i < terms.length; i++ ) {
-        calls.push(delayedRequest(i * randomBetween(MIN_DELAY, MAX_DELAY), this, request, [terms[i]]));
+        var delay = i * randomBetween(MIN_DELAY, MAX_DELAY);
+        var delayed = sleepPromise(delay, terms[i]).
+          then(
+            function(payload) {
+              console.log('payload', payload);
+              console.log('requesting search...');
+              return request(payload);
+            });
+
+          calls.push(delayed);
       }
+
       $q.all(calls).then(
         function (data) {
         // console.log(data);
         // $scope.dynamic = 0;
         $scope.queries = data;
+        sleepPromise(500).then(function() {
+          var offset = $('#accordion-results').offset();
+          // $('body').scrollTop(offset.top);
+          $('body').animate({scrollTop:offset.top}, '500');
+        });
       }, function (data) {
         // Error
       }, function(data){
