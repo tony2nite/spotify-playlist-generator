@@ -6,22 +6,24 @@
     <accordion-group heading="Search for Artists" id="accordion-search" is-open="status[0]" is-disabled="status.isFirstDisabled">
       <div class="form-group">
         <label for="search">Enter Artist Names</label>
-        <textarea id="search" placeholder="{{playlistplaceholder}}" cols="30" rows="5" ng-model="searchartist" class="form-control"></textarea>
+        <textarea id="search" placeholder="{{playlistplaceholder}}" cols="30" rows="5" ng-model="search.artists" class="form-control"></textarea>
         <span class="help-block">Enter each artist on a new line</span>
       </div>
       <div class="form-group">
         <label for="searchLimit">Number of Artist matches to return</label>
-        <input id="searchLimit" type="number" class="form-control" value="3" ng-model="searchlimit" >
+        <input type="number" ng-model="search.searchlimit" class="form-control" ng-change="change()">
       </div>
-      <button type="submit" class="btn btn btn-primary" ng-click="searchArtist(searchartist)" ng-disabled="searchartist.trim().length == 0">Search Artists</button>
+      <button type="submit" class="btn btn btn-primary" ng-click="searchArtist()" ng-disabled="searchartist.trim().length == 0">Search Artists</button>
     </accordion-group>
+
+
     <accordion-group heading="Add Artists to Playlist" id="accordion-results" is-open="status[1]" >
       <form class="panel-body">
         <div class="form-group">
           <label for="name">Playlist Name</label>
-          <input id="name" placeholder="My {{ playlistplaceholder }} Playlist" ng-model="playlist" class="form-control" >
+          <input id="name" placeholder="My {{ playlistplaceholder }} Playlist" ng-model="search.playlist" class="form-control" >
         </div>
-        <button type="submit" class="btn btn btn-primary" ng-click="processPlaylist(playlist)" ng-disabled="queries.length == 0">Create Playlist</button>
+        <button type="submit" class="btn btn btn-primary" ng-click="processPlaylist()" ng-disabled="queries.length == 0">Create Playlist</button>
         <hr />
         <div ng-repeat="query in queries" class="form-group list-group">
           <h5 class="media-heading">{{query.q}}</h5>
@@ -37,10 +39,21 @@
               </p>
             </div>
           </div>
+          <div class="list-group-item">
+            <div class="media-left">
+            </div>
+            <div class="media-body">
+              <p>
+                <input type="radio" value="-1" ng-model="query.selected">None of These</input>
+              </p>
+            </div>
+          </div>
         </div>
       </form>
     </accordion-group>
-    <accordion-group heading="Track List" is-disabled="tracks.length == 0" >
+
+
+    <accordion-group heading="Track List">
       <div class="">
         <p>
           <ol class="list-group">

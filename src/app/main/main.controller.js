@@ -3,10 +3,9 @@
 angular.module('spotifyPlaylistGenerator')
   .controller('MainCtrl', ['$scope', 'Spotify', '$q', '$timeout', function ($scope, Spotify, $q, $timeout) {
 
-
     $scope.dynamic = 0;
     $scope.max = 100;
-    $scope.searchlimit = 3;
+
     $scope.playlistplaceholder = 'Spotify';
     $scope.loggedin = false;
     $scope.queries = [];
@@ -15,6 +14,9 @@ angular.module('spotifyPlaylistGenerator')
 
     $scope.status = [true, false, false];
     $scope.oneAtATime = false;
+    $scope.search = {};
+    $scope.search.artists = "";
+    $scope.search.searchlimit = 5;
 
     var MAX_DELAY = 150;
     var MIN_DELAY = 850;
@@ -71,12 +73,12 @@ angular.module('spotifyPlaylistGenerator')
     function createPlaylist () {
       var defer = $q.defer();
 
-      Spotify.createPlaylist($scope.user, { name: $scope.playlist, public: false})
+      Spotify.createPlaylist($scope.user, { name: $scope.search.playlist, public: false})
       .then(
         function (data) {
           console.log('playlist created', data);
           $scope.playlistid = data.id;
-        }, 
+        },
         function(reason) {
           alert('Failed: ' + reason);
         }
@@ -108,7 +110,7 @@ angular.module('spotifyPlaylistGenerator')
     };
 
     function getArtistTracks () {
-      console.log($scope.queries);
+      console.log('$scope.queries', $scope.queries);
 
       $scope.status = [true, true, true];
 
@@ -116,10 +118,11 @@ angular.module('spotifyPlaylistGenerator')
       var calls = [];
 
       for (var i = $scope.queries.length - 1; i >= 0; i--) {
-        // console.log($scope.queries[i].selected);
-        if ($scope.queries[i].selected !== null) {
+        console.log('$scope.queries[i].selected', $scope.queries[i].selected);
+        var selected = $scope.queries[i].selected;
+        if (selected !== null && selected != -1) {
           calls.push(delayedRequest(
-            i * randomBetween(MIN_DELAY, MAX_DELAY), 
+            i * randomBetween(MIN_DELAY, MAX_DELAY),
             Spotify, Spotify.getArtistTopTracks, [$scope.queries[i].selected, 'GB']
             ));
         }
@@ -154,16 +157,14 @@ angular.module('spotifyPlaylistGenerator')
 
     $scope.updatePlaylistNamePlaceholder = function() {
       var name = "Spotify";
-      var search = $scope.searchartist.trim();
+      var search = $scope.search.artists.trim();
       if (search.length > 0) {
         name = search;
       }
       $scope.playlistplaceholder = name;
     };
 
-    $scope.processPlaylist = function(playlistName) {
-      $scope.playlist = playlistName;
-
+    $scope.processPlaylist = function() {
       getArtistTracks()
         .then(spotifyLogin)
         .then(createPlaylist)
@@ -172,12 +173,13 @@ angular.module('spotifyPlaylistGenerator')
         });
     };
 
-    $scope.searchArtist = function (artists) {
-      $scope.searchartist = artists;     // This doesn't seem Angular but ng-model isn't being updated
-      if (!$scope.searchartist || $scope.searchartist.length == 0) {
+    $scope.searchArtist = function () {
+      console.log('$scope.searchlimit',$scope.search.searchlimit);
+      // $scope.search.artists = artists;     // This doesn't seem Angular but ng-model isn't being updated
+      if (!$scope.search.artists || $scope.search.artists.length == 0) {
         return;
       }
-      var terms = $scope.searchartist.trim().split('\n');
+      var terms = $scope.search.artists.trim().split('\n');
       $scope.dynamic = 0;
       $scope.status = [true, true, false];
 
@@ -186,7 +188,7 @@ angular.module('spotifyPlaylistGenerator')
       var counter = 0;
       function request (artist) {
         var defer = $q.defer();
-        Spotify.search(artist, 'artist', {limit: $scope.searchlimit}).then(
+        Spotify.search(artist, 'artist', {limit: $scope.search.searchlimit}).then(
           function(data) {
             console.log("Spotify.search", data);
             counter++;
